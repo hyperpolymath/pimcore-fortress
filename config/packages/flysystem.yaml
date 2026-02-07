@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# Flysystem configuration for Pimcore Fortress
+# Configures Lithoglyph as the storage backend
+
+flysystem:
+    storages:
+        # Pimcore asset storage (replaces default local filesystem)
+        pimcore.asset_storage:
+            adapter: 'App\Adapter\LithoglyphAdapter'
+            options:
+                api_url: '%env(LITHOGLYPH_API_URL)%'
+                api_key: '%env(LITHOGLYPH_API_KEY)%'
+            visibility: private
+
+        # Pimcore thumbnail storage (also use Lithoglyph)
+        pimcore.thumbnail_storage:
+            adapter: 'App\Adapter\LithoglyphAdapter'
+            options:
+                api_url: '%env(LITHOGLYPH_API_URL)%'
+                api_key: '%env(LITHOGLYPH_API_KEY)%'
+            visibility: public
+
+        # Version storage for Pimcore (immutable versioning)
+        pimcore.version_storage:
+            adapter: 'App\Adapter\LithoglyphAdapter'
+            options:
+                api_url: '%env(LITHOGLYPH_API_URL)%'
+                api_key: '%env(LITHOGLYPH_API_KEY)%'
+            visibility: private

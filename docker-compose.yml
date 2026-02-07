@@ -1,0 +1,173 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# Pimcore Fortress - Superhardened CMS Stack
+# Architecture: Pimcore + Lithoglyph (IP Storage) + VerisimDB (Federated Truth)
+
+services:
+  # Reverse Proxy with automatic HTTPS
+  traefik:
+    image: traefik:v3.2
+    container_name: fortress-traefik
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - fortress-web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik:/etc/traefik
+      - ./traefik/acme:/acme
+    command:
+      - --api.dashboard=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.letsencrypt.acme.email=jonathan.jewell@open.ac.uk
+      - --certificatesresolvers.letsencrypt.acme.storage=/acme/acme.json
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+
+  # PostgreSQL - Primary database for Pimcore
+  db:
+    image: postgres:17-alpine
+    container_name: fortress-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pimcore
+      POSTGRES_USER: pimcore
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-pimcore_secure_password}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - fortress-backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pimcore"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis - Caching layer for extreme performance
+  redis:
+    image: redis:7-alpine
+    container_name: fortress-redis
+    restart: unless-stopped
+    networks:
+      - fortress-backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # Pimcore - The CMS/DAM/PIM core
+  pimcore:
+    build:
+      context: .
+      dockerfile: Dockerfile.pimcore
+    container_name: fortress-pimcore
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      PIMCORE_ENVIRONMENT: ${PIMCORE_ENV:-dev}
+      DATABASE_URL: postgresql://pimcore:${DB_PASSWORD:-pimcore_secure_password}@db:5432/pimcore
+      REDIS_HOST: redis
+      LITHOGLYPH_API_URL: http://lithoglyph:8080
+      VERISIMDB_API_URL: http://verisimdb:9090
+    volumes:
+      - ./src:/var/www/html/src
+      - ./config:/var/www/html/config
+      - pimcore-var:/var/www/html/var
+      - pimcore-public:/var/www/html/public
+    networks:
+      - fortress-web
+      - fortress-backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pimcore.rule=Host(`fortress.local`)"
+      - "traefik.http.routers.pimcore.entrypoints=websecure"
+      - "traefik.http.routers.pimcore.tls.certresolver=letsencrypt"
+      - "traefik.http.services.pimcore.loadbalancer.server.port=80"
+
+  # Lithoglyph - Immutable asset storage (IP protection)
+  lithoglyph:
+    build:
+      context: ../lithoglyph
+      dockerfile: Dockerfile
+    container_name: fortress-lithoglyph
+    restart: unless-stopped
+    environment:
+      LITHO_STORAGE_PATH: /data/lithoglyph
+      LITHO_API_PORT: 8080
+    volumes:
+      - lithoglyph-data:/data/lithoglyph
+    networks:
+      - fortress-backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # VerisimDB - Federated truth ledger (provenance)
+  verisimdb:
+    build:
+      context: ../verisimdb
+      dockerfile: Dockerfile
+    container_name: fortress-verisimdb
+    restart: unless-stopped
+    environment:
+      VERISIM_DATA_DIR: /data/verisimdb
+      VERISIM_API_PORT: 9090
+      VERISIM_RAFT_ID: fortress-node-1
+    volumes:
+      - verisimdb-data:/data/verisimdb
+    networks:
+      - fortress-backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx - Web server for Pimcore
+  nginx:
+    image: nginx:alpine
+    container_name: fortress-nginx
+    restart: unless-stopped
+    depends_on:
+      - pimcore
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - pimcore-public:/var/www/html/public:ro
+    networks:
+      - fortress-web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nginx.rule=Host(`fortress.local`)"
+      - "traefik.http.routers.nginx.entrypoints=websecure"
+      - "traefik.http.services.nginx.loadbalancer.server.port=80"
+
+networks:
+  fortress-web:
+    driver: bridge
+  fortress-backend:
+    driver: bridge
+    internal: true
+
+volumes:
+  db-data:
+    driver: local
+  pimcore-var:
+    driver: local
+  pimcore-public:
+    driver: local
+  lithoglyph-data:
+    driver: local
+  verisimdb-data:
+    driver: local

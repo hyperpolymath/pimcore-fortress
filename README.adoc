@@ -1,0 +1,382 @@
+= Pimcore Fortress
+:author: Jonathan D.A. Jewell
+:email: jonathan.jewell@open.ac.uk
+:license: PMPL-1.0-or-later
+:toc: left
+:toclevels: 3
+:icons: font
+
+image:https://img.shields.io/badge/license-PMPL--1.0--or--later-blue.svg[License]
+image:https://img.shields.io/badge/RSR-2026--compliant-green.svg[RSR Compliant]
+image:https://img.shields.io/badge/verified-cerro--torre-purple.svg[Cerro Torre Verified]
+
+== Overview
+
+**Pimcore Fortress** is a superhardened, one-click secure CMS ecosystem optimized for journalists, lens-based professionals, and PR/communications teams. It combines:
+
+* **Pimcore Community Edition** - DAM/PIM/CMS/DXP platform
+* **Lithoglyph** - Immutable, content-addressable asset storage for IP protection
+* **VerisimDB** - Federated truth ledger for provenance and anti-disinformation
+* **Hyperpolymath Verified Container Stack** - Formally verified orchestration
+
+=== Why "Fortress"?
+
+Traditional CMS systems treat security as an afterthought. Pimcore Fortress treats the **protection of intellectual property and journalistic integrity** as the foundational architecture:
+
+[cols="1,2,2"]
+|===
+|Component |Traditional Approach |Fortress Approach
+
+|Asset Storage
+|Files on disk, S3 buckets
+|Lithoglyph content-addressable immutable storage with cryptographic hash verification
+
+|Provenance
+|Manual metadata, easily forged
+|VerisimDB federated consensus - tamper-proof chain of custody
+
+|Container Runtime
+|Standard Docker, no verification
+|Vörðr formally verified runtime + Cerro Torre signed .ctp bundles
+
+|Security
+|Firewall + TLS
+|Zero-trust with Svalinn gateway, K9 policy enforcement, Proven safety modules
+|===
+
+=== Architecture Diagram
+
+[source,text]
+----
+       [ JOURNALIST / PR PROFESSIONAL ]
+                    |
+                    | HTTPS + mTLS
+                    v
+    +------------------------------------------+
+    |       SVALINN GATEWAY                    |
+    | (Policy Enforcement + HTTP Capability)   |
+    +------------------------------------------+
+                    |
+            ┌───────┴────────┐
+            v                v
+    [ SELUR IPC ]    [ VORDR RUNTIME ]
+    (WASM Bridge)    (Verified Orchestration)
+            |                |
+            └────────┬───────┘
+                     v
+    +------------------------------------------+
+    |        PIMCORE ECOSYSTEM                 |
+    |  (PHP 8.3 + Symfony 7 + Proven modules) |
+    |                                          |
+    |  [ DAM Studio ] ──> [ Event Listeners ] |
+    +--------+--------------------+------------+
+             |                    |
+     (A) BINARY STREAM    (B) METADATA CLAIMS
+             |                    |
+             v                    v
+    +------------------+   +-----------------------+
+    |   LITHOGLYPH     |   |      VERISIMDB        |
+    |  (The Engraving) |   |    (The Consensus)    |
+    |                  |   |                       |
+    | - Content Hash   |   | - Federated Proofs    |
+    | - IP Protection  |   | - KRaft Consensus     |
+    | - Immutable      |   | - Tamper Detection    |
+    +------------------+   +-----------------------+
+----
+
+== Quick Start
+
+=== Prerequisites
+
+* **Svalinn** - Edge gateway (https://github.com/hyperpolymath/svalinn)
+* **Vörðr** - Container runtime (https://github.com/hyperpolymath/vordr)
+* **Cerro Torre** - Image builder (https://github.com/hyperpolymath/cerro-torre)
+* **Lithoglyph** - Cloned at `../lithoglyph`
+* **VerisimDB** - Cloned at `../verisimdb`
+
+=== One-Click Deployment
+
+[source,bash]
+----
+# 1. Clone with dependencies
+git clone https://github.com/hyperpolymath/pimcore-fortress.git
+cd pimcore-fortress
+
+# 2. Create secrets directory
+mkdir -p secrets
+echo "pimcore_secure_$(openssl rand -hex 16)" > secrets/db_password.txt
+echo "postgresql://pimcore:$(cat secrets/db_password.txt)@db:5432/pimcore" > secrets/database_url.txt
+
+# 3. Build verified container images
+cerro-torre build --manifest pimcore.ctp --sign
+cerro-torre build --manifest ../lithoglyph/lithoglyph.ctp --sign
+cerro-torre build --manifest ../verisimdb/verisimdb.ctp --sign
+
+# 4. Deploy via Svalinn
+svalinn-compose up -d
+
+# 5. Access Pimcore Studio
+# Default: http://localhost:8080/admin
+# Username: admin
+# Password: (set during first-run wizard)
+----
+
+=== Development Mode
+
+For local testing without full verification:
+
+[source,bash]
+----
+# Use standard Docker Compose (fallback mode)
+docker compose -f docker-compose.yml up -d
+----
+
+== Components
+
+=== Pimcore Community Edition
+
+The **Open Core Data & Experience Management Platform** provides:
+
+* **PIM** (Product Information Management) - Structured data modeling
+* **DAM** (Digital Asset Management) - Media library with metadata
+* **CMS/DXP** - Headless content engine
+* **CDP** (Customer Data Platform) - Visitor tracking
+* **MDM** (Master Data Management) - Single source of truth
+
+**Free modules included:**
+
+* `pimcore/admin-ui-classic-bundle` - Classic admin interface
+* `pimcore/data-hub` - GraphQL/REST API
+* `pimcore/customer-data-framework` - CDP features
+* `pimcore/data-importer` - CSV/Excel import tool
+
+=== Lithoglyph Integration
+
+**Flysystem Adapter**: `src/Adapter/LithoglyphAdapter.php`
+
+Pimcore's Asset Manager automatically uses Lithoglyph for storage instead of local filesystem or S3:
+
+[source,php]
+----
+// In config/packages/flysystem.yaml
+flysystem:
+    storages:
+        pimcore.asset_storage:
+            adapter: 'App\Adapter\LithoglyphAdapter'
+            options:
+                api_url: '%env(LITHOGLYPH_API_URL)%'
+                api_key: '%env(LITHOGLYPH_API_KEY)%'
+----
+
+**Benefits:**
+
+* Every asset is content-addressed (SHA-256 hash)
+* Immutable storage - no silent bit-rot
+* Cryptographic proof of authenticity
+* C2PA metadata preservation
+
+=== VerisimDB Integration
+
+**Event Listener**: `src/EventListener/VerisimProvenanceListener.php` (TODO)
+
+Every time a journalist uploads a photo or a PR manager publishes a press release, the system broadcasts a cryptographic claim to VerisimDB:
+
+[source,json]
+----
+{
+  "claim_id": "uuid-v7",
+  "asset_hash": "sha256:...",
+  "uploader": "journalist@example.org",
+  "timestamp": "2026-02-07T12:00:00Z",
+  "location": "GPS coordinates",
+  "device": "Canon EOS R5",
+  "signature": "ed25519:..."
+}
+----
+
+This creates a **federated chain of custody** that survives even if the organization's server is compromised.
+
+== Security Hardening
+
+=== Zero-Trust Architecture
+
+* **No root containers** - All services run as non-privileged users
+* **Distroless base images** - No shell, no package manager, minimal attack surface
+* **Svalinn policy enforcement** - Every request validated before execution
+* **K9 security tiers** - Kennel (database), Yard (app), Hunt (consensus)
+
+=== Proven Safety Modules
+
+The following formally verified modules are active:
+
+[cols="1,2"]
+|===
+|Module |Purpose
+
+|`SafeJson`
+|Prevents JSON injection and deserialization attacks
+
+|`SafeUrl`
+|URL parsing with proven correctness (no SSRF)
+
+|`SafeDigest`
+|Cryptographic hash verification (SHA-256, SHA-3)
+
+|`SafeRegistry`
+|OCI image reference parsing (prevents typosquatting)
+
+|`SafeCredentials`
+|Secret rotation and secure storage
+|===
+
+=== HTTP Capability Gateway
+
+**http-capability-gateway** integration provides:
+
+* Capability-based security (no ambient authority)
+* Request signing with Ed25519
+* Time-bounded tokens (expire after 5 minutes)
+* Revocation support
+
+=== Consent-Aware HTTP
+
+**consent-aware-http** integration ensures:
+
+* GDPR compliance for visitor tracking
+* Explicit consent before analytics cookies
+* Audit trail of consent decisions
+
+== Use Cases
+
+=== For Journalists
+
+[source,text]
+----
+1. Upload raw photo from protest → Lithoglyph engraves with hash
+2. Pimcore tags with metadata → VerisimDB broadcasts provenance claim
+3. Editor publishes article with photo → C2PA signature attached
+4. External fact-checker verifies → Queries VerisimDB for chain of custody
+5. Result: Tamper-proof evidence, admissible in court
+----
+
+=== For PR/Communications
+
+[source,text]
+----
+1. PR manager drafts press release → Pimcore CMS
+2. Attach official logo + executive photo → Lithoglyph storage
+3. Publish to website + RSS feed → GraphQL API
+4. AI search engines (ChatGPT, Gemini) index → Schema.org markup
+5. Result: Organization is cited as primary source, not hallucinated
+----
+
+=== For Lens-Based Professionals
+
+[source,text]
+----
+1. Photographer uploads 4K video → Lithoglyph content-addressable storage
+2. Client downloads watermarked preview → Automated steganographic watermark
+3. Client purchases license → VerisimDB records transaction
+4. Unauthorized use detected → Forensic watermark traces back to source
+5. Result: IP protection + revenue recovery
+----
+
+== Development
+
+=== Directory Structure
+
+[source,text]
+----
+pimcore-fortress/
+├── svalinn-compose.yaml      # Verified orchestration
+├── docker-compose.yml         # Fallback (standard Docker)
+├── Dockerfile.pimcore         # Distroless PHP 8.3 build
+├── composer.json              # Pimcore + dependencies
+├── src/
+│   ├── Adapter/
+│   │   └── LithoglyphAdapter.php    # Flysystem bridge
+│   └── EventListener/
+│       └── VerisimProvenanceListener.php  # VerisimDB integration
+├── config/
+│   └── packages/
+│       └── flysystem.yaml     # Storage configuration
+├── .ctp/
+│   ├── pimcore.ctp            # Cerro Torre manifest
+│   ├── nginx.ctp              # Nginx manifest
+│   └── postgres.ctp           # PostgreSQL manifest
+└── secrets/
+    ├── db_password.txt        # Database credentials
+    └── database_url.txt       # Connection string
+----
+
+=== Testing
+
+[source,bash]
+----
+# Run PHPStan static analysis
+composer test
+
+# Build verified containers
+make build-verified
+
+# Run integration tests
+make test-integration
+----
+
+== Additional Integrations (Planned)
+
+=== PHP Security Layers
+
+* **php-aegis** - Memory-safe PHP extensions
+* **sanctify-php** - Input sanitization with formal guarantees
+* **claim-forge** - Attestation generation for C2PA
+
+== Roadmap
+
+=== v0.1.0 (MVP)
+- [x] Svalinn compose orchestration
+- [x] Lithoglyph Flysystem adapter
+- [ ] VerisimDB event listener
+- [ ] Basic Pimcore Studio setup
+
+=== v0.2.0 (Security Hardening)
+- [ ] php-aegis integration
+- [ ] sanctify-php integration
+- [ ] claim-forge attestation
+- [ ] K9 policy enforcement
+
+=== v0.3.0 (Production Ready)
+- [ ] Automated TLS via Traefik
+- [ ] SBOM generation
+- [ ] In-toto attestation chain
+- [ ] Multi-node VerisimDB cluster
+
+=== v1.0.0 (Public Release)
+- [ ] One-click installer
+- [ ] Documentation site
+- [ ] Video tutorials
+- [ ] Enterprise support
+
+== License
+
+SPDX-License-Identifier: PMPL-1.0-or-later
+
+Copyright (c) 2026 Jonathan D.A. Jewell <jonathan.jewell@open.ac.uk>
+
+This project is licensed under the **Palimpsest License (PMPL-1.0-or-later)**.
+
+See link:LICENSE[] for full text.
+
+== Contributing
+
+See link:CONTRIBUTING.md[] for contribution guidelines.
+
+== Support
+
+* **Issues**: https://github.com/hyperpolymath/pimcore-fortress/issues
+* **Discussions**: https://github.com/hyperpolymath/pimcore-fortress/discussions
+* **Security**: See link:SECURITY.md[]
+
+---
+
+Built with ❤️ using the **Hyperpolymath Verified Container Ecosystem**

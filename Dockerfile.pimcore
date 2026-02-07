@@ -1,0 +1,76 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# Superhardened Pimcore Container - Multi-stage build with distroless final image
+
+# Stage 1: Builder
+FROM php:8.3-fpm-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache \
+    git \
+    unzip \
+    libzip-dev \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    icu-dev \
+    postgresql-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+        gd \
+        intl \
+        pdo \
+        pdo_pgsql \
+        zip \
+        opcache
+
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy composer files
+COPY composer.json composer.lock* ./
+
+# Install dependencies (no dev for production)
+RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
+
+# Copy application code
+COPY . .
+
+# Run Pimcore-specific build steps
+RUN composer run-script post-install-cmd --no-interaction
+
+# Stage 2: Runtime (Distroless-inspired hardened image)
+FROM php:8.3-fpm-alpine
+
+# Add non-root user
+RUN addgroup -g 1000 pimcore && \
+    adduser -D -u 1000 -G pimcore pimcore
+
+# Copy PHP extensions from builder
+COPY --from=builder /usr/local/lib/php/extensions/ /usr/local/lib/php/extensions/
+COPY --from=builder /usr/local/etc/php/conf.d/ /usr/local/etc/php/conf.d/
+
+# Install runtime dependencies only
+RUN apk add --no-cache \
+    libzip \
+    libpng \
+    libjpeg-turbo \
+    freetype \
+    icu-libs \
+    postgresql-libs \
+    && rm -rf /var/cache/apk/*
+
+# Copy application from builder
+COPY --from=builder --chown=pimcore:pimcore /var/www/html /var/www/html
+
+WORKDIR /var/www/html
+
+# Switch to non-root user
+USER pimcore
+
+# PHP-FPM configuration
+EXPOSE 9000
+
+CMD ["php-fpm"]

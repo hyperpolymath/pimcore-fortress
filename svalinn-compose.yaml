@@ -1,0 +1,296 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# Pimcore Fortress - Superhardened CMS Stack
+# Orchestration: Svalinn + Vörðr verified container runtime
+# Architecture: Pimcore + Lithoglyph (IP Storage) + VerisimDB (Federated Truth)
+
+version: "3.9"
+
+x-svalinn:
+  policy-enforcement: strict
+  verification-required: true
+  attestation-chain: cerro-torre
+  ipc-bridge: selur
+
+services:
+  # PostgreSQL - Primary database for Pimcore
+  # CTP: Uses Cerro Torre .ctp bundle with formal verification
+  db:
+    image: ctp://cerro-torre/postgres:17-verified
+    container_name: fortress-db
+    restart: unless-stopped
+    x-svalinn:
+      policy: database-tier
+      proven-modules:
+        - SafePostgres
+        - SafeCredentials
+    environment:
+      POSTGRES_DB: pimcore
+      POSTGRES_USER: pimcore
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+    volumes:
+      - type: volume
+        source: db-data
+        target: /var/lib/postgresql/data
+        x-svalinn:
+          mount-verification: sha256
+    networks:
+      - fortress-backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pimcore"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    x-k9:
+      security-tier: kennel
+      allowed-syscalls:
+        - read
+        - write
+        - open
+        - close
+        - stat
+        - fstat
+
+  # Redis - Caching layer for extreme performance
+  # CTP: Verified Redis build with SafeCache proven module
+  redis:
+    image: ctp://cerro-torre/redis:7-verified
+    container_name: fortress-redis
+    restart: unless-stopped
+    x-svalinn:
+      policy: cache-tier
+      proven-modules:
+        - SafeCache
+        - SafeMemory
+    networks:
+      - fortress-backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    x-k9:
+      security-tier: kennel
+      max-memory: 512M
+
+  # Pimcore - The CMS/DAM/PIM core
+  # CTP: Custom build with PHP 8.3 + proven safety modules
+  pimcore:
+    build:
+      context: .
+      dockerfile: Dockerfile.pimcore
+      x-cerro-torre:
+        base-image: ctp://cerro-torre/php:8.3-fpm-verified
+        sbom-required: true
+        sign-with: ed25519
+        proven-modules:
+          - SafeJson
+          - SafeUrl
+          - SafeDigest
+          - SafeRegistry
+    container_name: fortress-pimcore
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      PIMCORE_ENVIRONMENT: ${PIMCORE_ENV:-dev}
+      DATABASE_URL_FILE: /run/secrets/database_url
+      REDIS_HOST: redis
+      LITHOGLYPH_API_URL: http://lithoglyph:8080
+      VERISIMDB_API_URL: http://verisimdb:9090
+    secrets:
+      - database_url
+    volumes:
+      - type: bind
+        source: ./src
+        target: /var/www/html/src
+        read_only: false
+      - type: bind
+        source: ./config
+        target: /var/www/html/config
+        read_only: true
+      - type: volume
+        source: pimcore-var
+        target: /var/www/html/var
+      - type: volume
+        source: pimcore-public
+        target: /var/www/html/public
+    networks:
+      - fortress-web
+      - fortress-backend
+    x-svalinn:
+      policy: application-tier
+      http-capability-gateway: true
+      consent-aware: true
+      proven-modules:
+        - SafeHttp
+        - SafeJson
+        - SafeUrl
+    x-k9:
+      security-tier: yard
+      php-aegis-enabled: true
+      sanctify-php-enabled: true
+
+  # Lithoglyph - Immutable asset storage (IP protection)
+  # CTP: Rust-verified build with cryptographic guarantees
+  lithoglyph:
+    image: ctp://local/lithoglyph:latest
+    build:
+      context: ../lithoglyph
+      x-cerro-torre:
+        language: rust
+        sbom-required: true
+        sign-with: ed25519
+        proven-modules:
+          - SafeDigest
+          - SafeCrypto
+    container_name: fortress-lithoglyph
+    restart: unless-stopped
+    environment:
+      LITHO_STORAGE_PATH: /data/lithoglyph
+      LITHO_API_PORT: 8080
+    volumes:
+      - type: volume
+        source: lithoglyph-data
+        target: /data/lithoglyph
+        x-svalinn:
+          immutable: true
+          content-addressable: true
+    networks:
+      - fortress-backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    x-svalinn:
+      policy: storage-tier
+      proven-modules:
+        - SafeDigest
+        - SafeCrypto
+        - SafeStorage
+    x-k9:
+      security-tier: kennel
+      content-addressable: true
+
+  # VerisimDB - Federated truth ledger (provenance)
+  # CTP: Elixir-verified build with KRaft consensus
+  verisimdb:
+    image: ctp://local/verisimdb:latest
+    build:
+      context: ../verisimdb
+      x-cerro-torre:
+        language: elixir
+        sbom-required: true
+        sign-with: ed25519
+        proven-modules:
+          - SafeConsensus
+          - SafeRaft
+    container_name: fortress-verisimdb
+    restart: unless-stopped
+    environment:
+      VERISIM_DATA_DIR: /data/verisimdb
+      VERISIM_API_PORT: 9090
+      VERISIM_RAFT_ID: fortress-node-1
+    volumes:
+      - type: volume
+        source: verisimdb-data
+        target: /data/verisimdb
+        x-svalinn:
+          federated: true
+    networks:
+      - fortress-backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    x-svalinn:
+      policy: consensus-tier
+      proven-modules:
+        - SafeConsensus
+        - SafeJson
+    x-k9:
+      security-tier: hunt
+      raft-enabled: true
+
+  # Nginx - Web server for Pimcore
+  # CTP: Verified nginx with security hardening
+  nginx:
+    image: ctp://cerro-torre/nginx:alpine-verified
+    container_name: fortress-nginx
+    restart: unless-stopped
+    depends_on:
+      - pimcore
+    volumes:
+      - type: bind
+        source: ./nginx/nginx.conf
+        target: /etc/nginx/nginx.conf
+        read_only: true
+      - type: volume
+        source: pimcore-public
+        target: /var/www/html/public
+        read_only: true
+    networks:
+      - fortress-web
+    ports:
+      - "8080:80"
+    x-svalinn:
+      policy: frontend-tier
+      http-capability-gateway: true
+    x-k9:
+      security-tier: yard
+      max-connections: 1000
+
+# Verified networks with Svalinn policy enforcement
+networks:
+  fortress-web:
+    driver: bridge
+    x-svalinn:
+      policy: public-facing
+      firewall-rules: strict
+  fortress-backend:
+    driver: bridge
+    internal: true
+    x-svalinn:
+      policy: internal-only
+      zero-trust: true
+
+# Verified volumes with content-addressable storage
+volumes:
+  db-data:
+    driver: local
+    x-svalinn:
+      encryption: true
+      backup-policy: daily
+  pimcore-var:
+    driver: local
+  pimcore-public:
+    driver: local
+  lithoglyph-data:
+    driver: local
+    x-svalinn:
+      immutable: true
+      content-addressable: true
+  verisimdb-data:
+    driver: local
+    x-svalinn:
+      federated: true
+      replication: 3
+
+# Secret management via Svalinn
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+    x-svalinn:
+      rotation-policy: 90d
+      proven-module: SafeCredentials
+  database_url:
+    file: ./secrets/database_url.txt
+    x-svalinn:
+      rotation-policy: 90d
+      proven-module: SafeUrl

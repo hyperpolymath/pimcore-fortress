@@ -1,0 +1,61 @@
+{
+    "name": "hyperpolymath/pimcore-fortress",
+    "type": "project",
+    "description": "Superhardened Pimcore Everything System - One-click secure CMS with Lithoglyph & VerisimDB integration for journalists and PR professionals",
+    "license": "PMPL-1.0-or-later",
+    "authors": [
+        {
+            "name": "Jonathan D.A. Jewell",
+            "email": "jonathan.jewell@open.ac.uk"
+        }
+    ],
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=8.3",
+        "pimcore/pimcore": "^11.4",
+        "pimcore/admin-ui-classic-bundle": "^1.6",
+        "pimcore/data-hub": "^1.5",
+        "pimcore/customer-data-framework": "^4.3",
+        "pimcore/data-importer": "^1.10",
+        "symfony/dotenv": "^7.2",
+        "symfony/runtime": "^7.2"
+    },
+    "require-dev": {
+        "symfony/var-dumper": "^7.2",
+        "phpstan/phpstan": "^2.0",
+        "phpstan/phpstan-symfony": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/",
+            "App\\Adapter\\": "src/Adapter/"
+        }
+    },
+    "scripts": {
+        "post-create-project-cmd": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
+            "@php bin/console pimcore:install --skip-database"
+        ],
+        "test": "phpstan analyse src",
+        "fortress:setup": [
+            "@php bin/console doctrine:database:create --if-not-exists",
+            "@php bin/console doctrine:schema:update --force",
+            "@php bin/console cache:clear"
+        ]
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true,
+        "allow-plugins": {
+            "symfony/runtime": true,
+            "symfony/flex": true
+        }
+    },
+    "extra": {
+        "symfony": {
+            "allow-contrib": false,
+            "require": "7.2.*"
+        }
+    }
+}
