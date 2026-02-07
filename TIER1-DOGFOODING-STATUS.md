@@ -122,40 +122,52 @@ Config: AUTH_ENABLED=false (development mode)
 
 ### **4. Cerro Torre Builder** (Ada/SPARK)
 
-**Status:** ⏳ Not deployed
+**Status:** ✅ Used successfully
 **Purpose:** Build verified .ctp container images with attestations
-**Binary:** ~/Documents/hyperpolymath-repos/cerro-torre/target/release/cerro-sign
+**Binary:** ~/Documents/hyperpolymath-repos/cerro-torre/bin/ct
 
-**Next Steps:**
-- Build Lithoglyph container with Cerro Torre
-- Generate .ctp image with SLSA attestations
-- Replace Dockerfile-based builds
+**Completed:**
+- ✅ Created lithoglyph.ctp manifest (190 lines)
+- ✅ Built verified container: lithoglyph-0.1.0.ctp.ctp
+- ✅ Includes SLSA attestations and SBOM
+- ✅ Demonstrates .ctp format for production use
 
 ---
 
 ### **5. VerisimDB Provenance Ledger** (Rust)
 
-**Status:** ⏳ Not deployed
+**Status:** ❌ Blocked by dependencies
 **Purpose:** Federated truth ledger for asset provenance tracking
-**Build Status:** Debug build only
+**Build Status:** Compilation failed
+
+**Blocker:**
+- Requires libclang for bindgen (C++ bindings to oxrocksdb-sys)
+- Error: "Unable to find libclang: couldn't find any valid shared libraries"
+- Fix required: Install libclang-devel package or set LIBCLANG_PATH
 
 **Next Steps:**
-- Build release version
+- Install system dependencies: `sudo dnf install clang-devel`
+- Retry: `cargo build --release`
 - Configure for Pimcore Fortress integration
-- Record asset modifications in immutable ledger
 
 ---
 
-### **6. Proven Binary Verification** (Rust)
+### **6. Proven Binary Verification** (Idris2)
 
-**Status:** ⏳ Not built
+**Status:** ❌ Blocked by compilation errors
 **Purpose:** Cryptographic verification of binary correctness
 
+**Blocker:**
+- Idris2 compilation errors in SafePath.Operations module
+- Type mismatches (Char vs Bool, String vs List1)
+- Missing functions (isWindowsAbs, matchStar, tails)
+- Code appears written for different Idris2 version (current: 0.8.0)
+
 **Next Steps:**
-- Build Proven framework
-- Verify demo-server binary
-- Verify libbridge.so
-- Generate proofs
+- Update Proven codebase for Idris2 0.8.0 compatibility
+- Fix type signature mismatches
+- Implement missing utility functions
+- Then: Verify demo-server and libbridge.so binaries
 
 ---
 
@@ -299,4 +311,46 @@ Config: AUTH_ENABLED=false (development mode)
 
 ---
 
-**Status: 60% COMPLETE - Core infrastructure operational, integration work remains** 🚀
+**Status: 67% COMPLETE (4/6 components operational) - Vörðr, Svalinn, Hypatia, Cerro Torre deployed. VerisimDB and Proven blocked by dependencies.** 🚀
+
+---
+
+## 🚧 **Blockers**
+
+### **VerisimDB Build Failure**
+- **Error:** `Unable to find libclang`
+- **Cause:** Missing system dependency for bindgen (Rust ↔ C++ FFI)
+- **Fix:** `sudo dnf install clang-devel` then rebuild
+- **Impact:** Provenance tracking unavailable until resolved
+
+### **Proven Build Failure**
+- **Error:** Multiple Idris2 type errors in SafePath.Operations
+- **Cause:** Code incompatible with Idris2 0.8.0 (API changes)
+- **Fix:** Update Proven codebase for current Idris2 version
+- **Impact:** Binary verification unavailable until resolved
+
+---
+
+## ✅ **What Works Now**
+
+1. **Verified Container Stack:** Svalinn (8000) → Vörðr (8080) communicating via JSON-RPC 2.0
+2. **Security Scanning:** Hypatia executed, 6-bot fleet auto-fixed 15 issues
+3. **Container Building:** Cerro Torre built lithoglyph-0.1.0.ctp.ctp with attestations
+4. **Backend Services:** PostgreSQL (5432) and Redis (6379) operational
+5. **Immutable Storage:** Lithoglyph HTTP API tested successfully (can restart on demand)
+
+---
+
+## 📊 **Updated Dogfooding Metrics**
+
+**Before Tier 1:** 7/50+ repos (14%)
+**After Tier 1:** 10/50+ repos (20%)
+**Blocked:** 2/6 components (VerisimDB, Proven)
+
+**Successfully dogfooding:**
+- ✅ vordr - Container runtime MCP server (running)
+- ✅ svalinn - Edge gateway (running)
+- ✅ hypatia - Security scanner (executed)
+- ✅ cerro-torre - Container builder (used)
+
+**Total hyperpolymath tools actively used:** 10
