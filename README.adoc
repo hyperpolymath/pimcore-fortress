@@ -380,3 +380,8 @@ See link:CONTRIBUTING.md[] for contribution guidelines.
 ---
 
 Built with ❤️ using the **Hyperpolymath Verified Container Ecosystem**
+
+
+== Architecture
+
+See link:TOPOLOGY.md[TOPOLOGY.md] for a visual architecture map and completion dashboard.
