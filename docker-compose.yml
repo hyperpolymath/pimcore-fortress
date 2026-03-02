@@ -25,7 +25,7 @@ services:
       - --providers.docker.exposedbydefault=false
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
-      - --certificatesresolvers.letsencrypt.acme.email=jonathan.jewell@open.ac.uk
+      - --certificatesresolvers.letsencrypt.acme.email=j.d.a.jewell@open.ac.uk
       - --certificatesresolvers.letsencrypt.acme.storage=/acme/acme.json
       - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
 

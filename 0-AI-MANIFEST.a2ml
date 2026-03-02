@@ -44,7 +44,7 @@ Bot-specific instructions for:
 2. **Single source of truth** - `.machine_readable/` is authoritative
 3. **No stale metadata** - If root SCMs exist, they are OUT OF DATE
 4. **License consistency** - All code PMPL-1.0-or-later unless platform requires MPL-2.0
-5. **Author attribution** - Always "Jonathan D.A. Jewell <jonathan.jewell@open.ac.uk>"
+5. **Author attribution** - Always "Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>"
 
 ## REPOSITORY STRUCTURE
 
@@ -127,7 +127,7 @@ After reading this file, demonstrate understanding by stating:
 
 - **Format Version:** 1.0.0
 - **Created:** 2026-02-07
-- **Maintained By:** Jonathan D.A. Jewell <jonathan.jewell@open.ac.uk>
+- **Maintained By:** Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 - **License:** PMPL-1.0-or-later
 - **Protocol:** https://github.com/hyperpolymath/0-ai-gatekeeper-protocol
 - **Ecosystem:** Hyperpolymath Verified Container Stack

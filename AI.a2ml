@@ -2,7 +2,7 @@
 # AI Assistant Instructions
 
 ## Repository Focus
-- `rsr-template-repo` is treated as a Rhodium Standard Repository; obey the Rhodium policies, maintain `.bot_directives`, and keep `.machines_readable/6scm/` authoritative.
+- `pimcore-fortress` is treated as a Rhodium Standard Repository; obey the Rhodium policies, maintain `.bot_directives`, and keep `.machines_readable/6scm/` authoritative.
 - Prefer to keep generated files out of source control, and regenerate them with the documented commands before committing.
 
 ## Workflow

@@ -17,7 +17,7 @@ use League\Flysystem\DirectoryAttributes;
  * All "lens-based" assets are engraved into Lithoglyph,
  * providing cryptographic IP protection.
  *
- * @author Jonathan D.A. Jewell <jonathan.jewell@open.ac.uk>
+ * @author Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
  */
 class LithoglyphAdapter implements FilesystemAdapter
 {

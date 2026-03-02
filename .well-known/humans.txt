@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# humans.txt — https://humanstxt.org/
+
+/* TEAM */
+Name: Jonathan D.A. Jewell
+Role: Lead Maintainer
+Site: https://github.com/hyperpolymath
+Contact: j.d.a.jewell [at] open.ac.uk
+Location: United Kingdom
+
+/* SITE */
+Standards: HTML5, CSS3
+Components: Pimcore CE, Lithoglyph, VerisimDB, Svalinn, Cerro Torre
+Software: PHP 8.3, Symfony 7, Idris2, Zig, ReScript

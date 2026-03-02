@@ -1,22 +1,39 @@
 // SPDX-License-Identifier: PMPL-1.0-or-later
-= YOUR Template Repo Roadmap
+= Pimcore Fortress Roadmap
 
 == Current Status
 
-Initial development phase.
+Initial development phase. Core container infrastructure and Flysystem adapter complete.
 
 == Milestones
 
-=== v0.1.0 - Foundation
-* [ ] Core functionality
-* [ ] Basic documentation
-* [ ] CI/CD pipeline
+=== v0.1.0 - Foundation (MVP)
+* [x] Svalinn compose orchestration
+* [x] Lithoglyph Flysystem adapter
+* [x] Dockerfile.pimcore distroless build
+* [x] nginx.conf configuration
+* [ ] VerisimDB event listener
+* [ ] Basic Pimcore Studio setup
+* [ ] .ctp manifests for all services
 
-=== v1.0.0 - Stable Release
-* [ ] Full feature set
-* [ ] Comprehensive tests
-* [ ] Production ready
+=== v0.2.0 - Security Hardening
+* [ ] php-aegis integration
+* [ ] sanctify-php integration
+* [ ] claim-forge attestation
+* [ ] K9 policy enforcement
+
+=== v0.3.0 - Production Ready
+* [ ] Automated TLS via Traefik
+* [ ] SBOM generation
+* [ ] In-toto attestation chain
+* [ ] Multi-node VerisimDB cluster
+
+=== v1.0.0 - Public Release
+* [ ] One-click installer
+* [ ] Documentation site
+* [ ] Video tutorials
+* [ ] Enterprise support
 
 == Future Directions
 
-_To be determined based on community feedback._
+_To be determined based on community feedback and ecosystem maturation._

@@ -1,6 +1,6 @@
 = Pimcore Fortress
 :author: Jonathan D.A. Jewell
-:email: jonathan.jewell@open.ac.uk
+:email: j.d.a.jewell@open.ac.uk
 :license: PMPL-1.0-or-later
 :toc: left
 :toclevels: 3
@@ -361,7 +361,7 @@ make test-integration
 
 SPDX-License-Identifier: PMPL-1.0-or-later
 
-Copyright (c) 2026 Jonathan D.A. Jewell <jonathan.jewell@open.ac.uk>
+Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 
 This project is licensed under the **Palimpsest License (PMPL-1.0-or-later)**.
 

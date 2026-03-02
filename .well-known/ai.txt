@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# ai.txt — AI agent interaction policy
+# See: https://github.com/nichochar/ai.txt
+
+# User-agent: *
+# Allow: /
+# Disallow: /secrets/
+
+# This project welcomes AI assistance.
+# Machine-readable metadata is in .machine_readable/ (6 SCM files).
+# Bot directives are in .bot_directives/.
+# AI manifest: 0-AI-MANIFEST.a2ml
+
+# License: PMPL-1.0-or-later (Palimpsest License)
+# Author: Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+# Repository: https://github.com/hyperpolymath/pimcore-fortress
