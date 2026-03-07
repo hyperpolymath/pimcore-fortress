@@ -94,14 +94,14 @@ start_vordr() {
     cd "$HYPERPOLYMATH_REPOS/vordr/src/mcp-adapter"
 
     # Kill existing instance
-    if [ -f /tmp/vordr-mcp.pid ]; then
-        kill "$(cat /tmp/vordr-mcp.pid)" 2>/dev/null || true
+    if [ -f "$HYPATIA_TMPDIR/vordr-mcp.pid" ]; then
+        kill "$(cat "$HYPATIA_TMPDIR/vordr-mcp.pid")" 2>/dev/null || true
     fi
 
     # Start Vörðr
     nohup deno run --allow-net --allow-read --allow-env http-server.ts \
-        > /tmp/vordr-mcp.log 2>&1 &
-    echo $! > /tmp/vordr-mcp.pid
+        > "$HYPATIA_TMPDIR/vordr-mcp.log" 2>&1 &
+    echo $! > "$HYPATIA_TMPDIR/vordr-mcp.pid"
 
     sleep 3
 
@@ -110,7 +110,7 @@ start_vordr() {
         -H "Content-Type: application/json" \
         -d '{"jsonrpc":"2.0","id":1,"method":"ping"}' \
         | grep -q '"pong"'; then
-        log_success "Vörðr running (PID: $(cat /tmp/vordr-mcp.pid))"
+        log_success "Vörðr running (PID: $(cat "$HYPATIA_TMPDIR/vordr-mcp.pid"))"
     else
         log_error "Vörðr failed to start"
         return 1
@@ -129,14 +129,14 @@ start_svalinn() {
     AUTH_ENABLED=false \
     SVALINN_PORT=8000 \
     VORDR_ENDPOINT=http://localhost:8080 \
-        nohup deno task start > /tmp/svalinn.log 2>&1 &
-    echo $! > /tmp/svalinn.pid
+        nohup deno task start > "$HYPATIA_TMPDIR/svalinn.log" 2>&1 &
+    echo $! > "$HYPATIA_TMPDIR/svalinn.pid"
 
     sleep 3
 
     # Test
     if curl -s http://localhost:8000/health | grep -q '"version"'; then
-        log_success "Svalinn running (PID: $(cat /tmp/svalinn.pid))"
+        log_success "Svalinn running (PID: $(cat "$HYPATIA_TMPDIR/svalinn.pid"))"
     else
         log_error "Svalinn failed to start"
         return 1
@@ -165,12 +165,12 @@ start_verisimdb() {
     pkill -f "verisimdb.*--port" || true
 
     # Start VerisimDB
-    nohup "$binary" --port 9090 > /tmp/verisimdb.log 2>&1 &
-    echo $! > /tmp/verisimdb.pid
+    nohup "$binary" --port 9090 > "$HYPATIA_TMPDIR/verisimdb.log" 2>&1 &
+    echo $! > "$HYPATIA_TMPDIR/verisimdb.pid"
 
     sleep 3
 
-    log_success "VerisimDB running (PID: $(cat /tmp/verisimdb.pid))"
+    log_success "VerisimDB running (PID: $(cat "$HYPATIA_TMPDIR/verisimdb.pid"))"
 }
 
 install_pimcore() {
@@ -223,13 +223,13 @@ start_pimcore() {
     pkill -f "php.*8081" || true
 
     # Start Pimcore
-    nohup php -S localhost:8081 -t public/ > /tmp/pimcore.log 2>&1 &
-    echo $! > /tmp/pimcore.pid
+    nohup php -S localhost:8081 -t public/ > "$HYPATIA_TMPDIR/pimcore.log" 2>&1 &
+    echo $! > "$HYPATIA_TMPDIR/pimcore.pid"
 
     sleep 3
 
     if curl -s http://localhost:8081 >/dev/null 2>&1; then
-        log_success "Pimcore running (PID: $(cat /tmp/pimcore.pid))"
+        log_success "Pimcore running (PID: $(cat "$HYPATIA_TMPDIR/pimcore.pid"))"
         log_success "Access at: http://localhost:8081"
     else
         log_error "Pimcore failed to start"
@@ -250,7 +250,7 @@ print_status() {
         "Redis:6379:podman ps -f name=redis --format '{{.Status}}'"
         "Vörðr:8080:curl -s -X POST http://localhost:8080 -H 'Content-Type: application/json' -d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"ping\"}'"
         "Svalinn:8000:curl -s http://localhost:8000/health"
-        "VerisimDB:9090:[ -f /tmp/verisimdb.pid ] && ps -p \$(cat /tmp/verisimdb.pid)"
+        "VerisimDB:9090:[ -f "$HYPATIA_TMPDIR/verisimdb.pid" ] && ps -p \$(cat "$HYPATIA_TMPDIR/verisimdb.pid")"
         "Pimcore:8081:curl -s http://localhost:8081"
     )
 

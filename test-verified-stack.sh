@@ -95,8 +95,8 @@ test_vordr() {
     section "Vörðr Container Runtime (Port 8080)"
 
     # Test 1: Process running
-    if [ -f /tmp/vordr-mcp.pid ] && ps -p "$(cat /tmp/vordr-mcp.pid)" >/dev/null 2>&1; then
-        test_pass "Vörðr process running (PID: $(cat /tmp/vordr-mcp.pid))"
+    if [ -f "$HYPATIA_TMPDIR/vordr-mcp.pid" ] && ps -p "$(cat "$HYPATIA_TMPDIR/vordr-mcp.pid")" >/dev/null 2>&1; then
+        test_pass "Vörðr process running (PID: $(cat "$HYPATIA_TMPDIR/vordr-mcp.pid"))"
     else
         test_fail "Vörðr process not running"
         return
@@ -152,8 +152,8 @@ test_svalinn() {
     section "Svalinn Edge Gateway (Port 8000)"
 
     # Test 1: Process running
-    if [ -f /tmp/svalinn.pid ] && ps -p "$(cat /tmp/svalinn.pid)" >/dev/null 2>&1; then
-        test_pass "Svalinn process running (PID: $(cat /tmp/svalinn.pid))"
+    if [ -f "$HYPATIA_TMPDIR/svalinn.pid" ] && ps -p "$(cat "$HYPATIA_TMPDIR/svalinn.pid")" >/dev/null 2>&1; then
+        test_pass "Svalinn process running (PID: $(cat "$HYPATIA_TMPDIR/svalinn.pid"))"
     else
         test_fail "Svalinn process not running"
         return
@@ -209,8 +209,8 @@ test_verisimdb() {
     section "VerisimDB Provenance Ledger (Port 9090)"
 
     # Test 1: Process running
-    if [ -f /tmp/verisimdb.pid ] && ps -p "$(cat /tmp/verisimdb.pid)" >/dev/null 2>&1; then
-        test_pass "VerisimDB process running (PID: $(cat /tmp/verisimdb.pid))"
+    if [ -f "$HYPATIA_TMPDIR/verisimdb.pid" ] && ps -p "$(cat "$HYPATIA_TMPDIR/verisimdb.pid")" >/dev/null 2>&1; then
+        test_pass "VerisimDB process running (PID: $(cat "$HYPATIA_TMPDIR/verisimdb.pid"))"
     else
         test_skip "VerisimDB not running (requires clang-devel)"
         return
@@ -228,8 +228,8 @@ test_pimcore() {
     section "Pimcore Fortress CMS (Port 8081)"
 
     # Test 1: Process running
-    if [ -f /tmp/pimcore.pid ] && ps -p "$(cat /tmp/pimcore.pid)" >/dev/null 2>&1; then
-        test_pass "Pimcore process running (PID: $(cat /tmp/pimcore.pid))"
+    if [ -f "$HYPATIA_TMPDIR/pimcore.pid" ] && ps -p "$(cat "$HYPATIA_TMPDIR/pimcore.pid")" >/dev/null 2>&1; then
+        test_pass "Pimcore process running (PID: $(cat "$HYPATIA_TMPDIR/pimcore.pid"))"
     else
         test_skip "Pimcore not running (requires PHP)"
         return
@@ -243,7 +243,7 @@ test_pimcore() {
     fi
 
     # Test 3: Database connection
-    if [ -f /tmp/pimcore.log ] && grep -q "doctrine" /tmp/pimcore.log 2>/dev/null; then
+    if [ -f "$HYPATIA_TMPDIR/pimcore.log" ] && grep -q "doctrine" "$HYPATIA_TMPDIR/pimcore.log" 2>/dev/null; then
         test_pass "Pimcore database connection configured"
     else
         test_skip "Pimcore database connection (check logs)"
