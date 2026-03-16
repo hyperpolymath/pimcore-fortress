@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# Clade declaration — part of the gv-clade-index registry
+# See: https://github.com/hyperpolymath/gv-clade-index
+
+[identity]
+uuid = "6b10f9a1-8c82-540e-ab31-cb2ece0aad96"
+primary-forge = "github"
+primary-owner = "hyperpolymath"
+canonical-name = "pimcore-fortress"
+prefixed-name = "sc-pimcore-fortress"
+
+[clade]
+primary = "sc"
+secondary = []
+assigned = "2026-03-16"
+rationale = ""
+
+[forges]
+github = "hyperpolymath/pimcore-fortress"
+gitlab = "hyperpolymath/pimcore-fortress"
+bitbucket = "hyperpolymath/pimcore-fortress"
+
+[lineage]
+type = "standalone"
+parent = "Pimcore security hardening"
+born = "2026-03-16"
