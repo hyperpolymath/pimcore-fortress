@@ -215,7 +215,7 @@ VerisimDB (9090)  → Provenance ledger, audit trails
 ### Phase 2 (Integration)
 3. **Deploy complete stack**
    ```bash
-   cd /mnt/eclipse/repos/pimcore-fortress
+   cd $REPOS_DIR/pimcore-fortress
    ./deploy-full-stack.sh
    ```
 
@@ -330,7 +330,7 @@ podman exec pimcore-fortress-redis-1 redis-cli ping
 # → PONG
 
 # Run comprehensive tests
-cd /mnt/eclipse/repos/pimcore-fortress
+cd $REPOS_DIR/pimcore-fortress
 ./test-verified-stack.sh
 ```
 
@@ -382,7 +382,7 @@ cd /mnt/eclipse/repos/pimcore-fortress
 
 **Deployment command when ready:**
 ```bash
-cd /mnt/eclipse/repos/pimcore-fortress && ./deploy-full-stack.sh
+cd $REPOS_DIR/pimcore-fortress && ./deploy-full-stack.sh
 ```
 
 🚀 **Core verified container infrastructure is OPERATIONAL!**

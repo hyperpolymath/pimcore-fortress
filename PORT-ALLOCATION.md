@@ -190,7 +190,7 @@ INSERT DATA {
 
 **Start:**
 ```bash
-cd /mnt/eclipse/repos/pimcore-fortress/
+cd $REPOS_DIR/pimcore-fortress/
 podman-compose -f docker-compose.dev.yml up -d db
 ```
 
@@ -211,7 +211,7 @@ podman-compose -f docker-compose.dev.yml up -d db
 
 **Start:**
 ```bash
-cd /mnt/eclipse/repos/pimcore-fortress/
+cd $REPOS_DIR/pimcore-fortress/
 podman-compose -f docker-compose.dev.yml up -d redis
 ```
 
@@ -222,7 +222,7 @@ podman-compose -f docker-compose.dev.yml up -d redis
 **Purpose:** Digital Asset Management web interface
 **Protocol:** HTTP (PHP-FPM + Nginx)
 **Process:** PHP 8.3 + Symfony
-**Location:** `/mnt/eclipse/repos/pimcore-fortress/`
+**Location:** `$REPOS_DIR/pimcore-fortress/`
 
 **Environment:**
 ```env
@@ -235,7 +235,7 @@ APP_ENV=dev
 
 **Start:**
 ```bash
-cd /mnt/eclipse/repos/pimcore-fortress/
+cd $REPOS_DIR/pimcore-fortress/
 php -S localhost:8081 -t public/
 # Or with Symfony CLI:
 symfony server:start --port=8081
@@ -352,7 +352,7 @@ sudo firewall-cmd --reload
 4. **Application Layer**
    ```bash
    # Start Pimcore
-   cd /mnt/eclipse/repos/pimcore-fortress/
+   cd $REPOS_DIR/pimcore-fortress/
    symfony server:start --port=8081 --daemon
    # Or: php -S localhost:8081 -t public/
    ```
