@@ -1,0 +1,14 @@
+// Intend.a2ml for pimcore-fortress
+// SPDX-License-Identifier: PMPL-1.0-or-later
+// Generated: 2026-04-08T19:52:44+01:00
+
+Intend {
+    name: "pimcore-fortress"
+    version: "1.0.0"
+    description: "Intend contractile for pimcore-fortress"
+    
+    // Basic Intend configuration
+    enabled: true
+    
+    // Repository-specific settings will be added here
+}

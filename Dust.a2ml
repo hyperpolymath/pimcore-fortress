@@ -1,0 +1,14 @@
+// Dust.a2ml for pimcore-fortress
+// SPDX-License-Identifier: PMPL-1.0-or-later
+// Generated: 2026-04-08T19:52:44+01:00
+
+Dust {
+    name: "pimcore-fortress"
+    version: "1.0.0"
+    description: "Dust contractile for pimcore-fortress"
+    
+    // Basic Dust configuration
+    enabled: true
+    
+    // Repository-specific settings will be added here
+}
