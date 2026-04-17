@@ -3,6 +3,7 @@
 
 # Default recipe — list available commands
 import? "contractile.just"
+set shell := ["bash", "-euo", "pipefail", "-c"]
 
 default:
     @just --list
@@ -70,3 +71,98 @@ crg-badge:
       D) color="orange" ;; E) color="red" ;; F) color="critical" ;; \
       *) color="lightgrey" ;; esac; \
     echo "[![CRG $$grade](https://img.shields.io/badge/CRG-$$grade-$$color?style=flat-square)](https://github.com/hyperpolymath/standards/tree/main/component-readiness-grades)"
+
+# Create secrets directory and generate passwords
+setup:
+    @echo "Creating secrets..."
+    @mkdir -p secrets
+    @if [ ! -f secrets/db_password.txt ]; then \
+        echo "pimcore_secure_$$(openssl rand -hex 16)" > secrets/db_password.txt; \
+        echo "Generated database password"; \
+    fi
+    @if [ ! -f secrets/database_url.txt ]; then \
+        echo "postgresql://pimcore:$$(cat secrets/db_password.txt)@db:5432/pimcore" > secrets/database_url.txt; \
+        echo "Generated database URL"; \
+    fi
+    @echo "Setup complete"
+
+build-verified:
+    @echo "Building verified containers with Cerro Torre..."
+    @if command -v cerro-torre >/dev/null 2>&1; then \
+        cerro-torre build --manifest .ctp/pimcore.ctp --sign; \
+        cerro-torre build --manifest .ctp/nginx.ctp --sign; \
+        cerro-torre build --manifest .ctp/postgres.ctp --sign; \
+        echo "Verified build complete"; \
+    else \
+        echo "Cerro Torre not found"; \
+        exit 1; \
+    fi
+
+build:
+    @echo "Building Docker images (fallback mode)..."
+    docker compose build
+    @echo "Build complete"
+
+up-verified: setup
+    @echo "Starting Pimcore Fortress (verified mode)..."
+    @if command -v svalinn-compose >/dev/null 2>&1; then \
+        svalinn-compose up -d; \
+        echo "Services started"; \
+        echo "Access Pimcore Studio at: http://localhost:8080/admin"; \
+    else \
+        echo "Svalinn not found; run 'just up' for fallback mode"; \
+        exit 1; \
+    fi
+
+up: setup
+    @echo "Starting Pimcore Fortress (Docker Compose fallback)..."
+    docker compose up -d
+    @echo "Services started"
+    @echo "Access Pimcore Studio at: http://localhost:8080/admin"
+
+down:
+    @echo "Stopping services..."
+    @if command -v svalinn-compose >/dev/null 2>&1 && [ -f svalinn-compose.yaml ]; then \
+        svalinn-compose down; \
+    else \
+        docker compose down; \
+    fi
+    @echo "Services stopped"
+
+logs:
+    docker compose logs -f
+
+test:
+    @echo "Running PHPStan..."
+    @if [ -d vendor ]; then \
+        composer test; \
+    else \
+        echo "Vendor directory not found. Run 'composer install' first."; \
+        exit 1; \
+    fi
+
+install:
+    @echo "Installing Pimcore..."
+    @if ! docker ps | grep -q fortress-pimcore; then \
+        echo "Pimcore container not running. Run 'just up' first."; \
+        exit 1; \
+    fi
+    docker compose exec pimcore ./vendor/bin/pimcore-install
+    @echo "Pimcore installed"
+
+clean:
+    @echo "Cleaning up..."
+    docker compose down -v
+    @echo "Cleanup complete"
+
+composer-install:
+    docker compose exec pimcore composer install
+
+composer-update:
+    docker compose exec pimcore composer update
+
+shell:
+    docker compose exec pimcore bash
+
+db-shell:
+    docker compose exec db psql -U pimcore
