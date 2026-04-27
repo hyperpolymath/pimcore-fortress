@@ -1,0 +1,98 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+#
+# Stapeln service definition for pimcore-fortress
+# Superhardened CMS: Pimcore + Lithoglyph (IP storage) + VeriSimDB (provenance)
+# fortress-backend is internal: no external access
+#
+# Usage:
+#   podman-compose -f selur-compose.toml up -d
+#   just stack-up
+
+[project]
+name = "pimcore-fortress"
+
+[services.traefik]
+image = "traefik:v3.2"
+restart = "unless-stopped"
+networks = ["fortress-web"]
+ports = ["80:80", "443:443"]
+security_opt = ["no-new-privileges:true"]
+volumes = [
+  "/var/run/docker.sock:/var/run/docker.sock:ro",
+  "./traefik:/etc/traefik",
+  "./traefik/acme:/acme",
+]
+command = [
+  "--api.dashboard=true",
+  "--providers.docker=true",
+  "--providers.docker.exposedbydefault=false",
+  "--entrypoints.web.address=:80",
+  "--entrypoints.websecure.address=:443",
+  "--certificatesresolvers.letsencrypt.acme.email=j.d.a.jewell@open.ac.uk",
+  "--certificatesresolvers.letsencrypt.acme.storage=/acme/acme.json",
+  "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web",
+]
+
+[services.db]
+image = "postgres:17-alpine"
+restart = "unless-stopped"
+networks = ["fortress-backend"]
+environment = { POSTGRES_DB = "pimcore", POSTGRES_USER = "pimcore", POSTGRES_PASSWORD = "${DB_PASSWORD:-pimcore_secure_password}" }
+volumes = ["db-data:/var/lib/postgresql/data"]
+healthcheck = { test = ["CMD-SHELL", "pg_isready -U pimcore"], interval = "10s", timeout = "5s", retries = 5 }
+
+[services.redis]
+image = "cgr.dev/chainguard/redis:latest"
+restart = "unless-stopped"
+networks = ["fortress-backend"]
+healthcheck = { test = ["CMD", "redis-cli", "ping"], interval = "10s", timeout = "3s", retries = 3 }
+
+[services.pimcore]
+build = { context = ".", dockerfile = "Dockerfile.pimcore" }
+restart = "unless-stopped"
+networks = ["fortress-web", "fortress-backend"]
+environment = { PIMCORE_ENVIRONMENT = "${PIMCORE_ENV:-dev}", DATABASE_URL = "postgresql://pimcore:${DB_PASSWORD:-pimcore_secure_password}@db:5432/pimcore", REDIS_HOST = "redis", LITHOGLYPH_API_URL = "http://lithoglyph:8080", VERISIMDB_API_URL = "http://verisimdb:9090" }
+volumes = [
+  "./src:/var/www/html/src",
+  "./config:/var/www/html/config",
+  "pimcore-var:/var/www/html/var",
+  "pimcore-public:/var/www/html/public",
+]
+
+[services.lithoglyph]
+build = { context = "../lithoglyph", dockerfile = "Dockerfile" }
+restart = "unless-stopped"
+networks = ["fortress-backend"]
+environment = { LITHO_STORAGE_PATH = "/data/lithoglyph", LITHO_API_PORT = "8080" }
+volumes = ["lithoglyph-data:/data/lithoglyph"]
+healthcheck = { test = ["CMD", "curl", "-f", "http://localhost:8080/health"], interval = "30s", timeout = "10s", retries = 3 }
+
+[services.verisimdb]
+build = { context = "../verisimdb", dockerfile = "Dockerfile" }
+restart = "unless-stopped"
+networks = ["fortress-backend"]
+environment = { VERISIM_DATA_DIR = "/data/verisimdb", VERISIM_API_PORT = "9090", VERISIM_RAFT_ID = "fortress-node-1" }
+volumes = ["verisimdb-data:/data/verisimdb"]
+healthcheck = { test = ["CMD", "curl", "-f", "http://localhost:9090/health"], interval = "30s", timeout = "10s", retries = 3 }
+
+[services.nginx]
+image = "cgr.dev/chainguard/nginx:latest"
+restart = "unless-stopped"
+networks = ["fortress-web"]
+volumes = [
+  "./nginx/nginx.conf:/etc/nginx/nginx.conf:ro",
+  "pimcore-public:/var/www/html/public:ro",
+]
+
+[volumes]
+db-data = {}
+pimcore-var = {}
+pimcore-public = {}
+lithoglyph-data = {}
+verisimdb-data = {}
+
+[networks]
+fortress-web = { driver = "bridge" }
+# fortress-backend is internal: services cannot reach external networks
+fortress-backend = { driver = "bridge", internal = true }
