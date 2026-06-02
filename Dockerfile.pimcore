@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 # Superhardened Pimcore Container - Multi-stage build with distroless final image
 
 # Stage 1: Builder

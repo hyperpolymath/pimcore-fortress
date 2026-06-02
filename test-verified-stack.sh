@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 # Pimcore Fortress - Verified Container Stack Test Suite
 #
 # Tests all components of the verified container ecosystem
