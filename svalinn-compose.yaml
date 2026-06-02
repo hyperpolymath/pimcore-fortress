@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 # Pimcore Fortress - Superhardened CMS Stack
 # Orchestration: Svalinn + Vörðr verified container runtime
 # Architecture: Pimcore + Lithoglyph (IP Storage) + VerisimDB (Federated Truth)
