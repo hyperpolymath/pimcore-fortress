@@ -1,4 +1,8 @@
+// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 = Pimcore Fortress
+image:https://img.shields.io/badge/OpenSSF-Best_Practices-green?logo=openssourcesecurity[OpenSSF Best Practices,link="https://www.bestpractices.dev/en/projects/new?repo_url=https://github.com/hyperpolymath/pimcore-fortress"]
+
 :author: Jonathan D.A. Jewell
 :email: j.d.a.jewell@open.ac.uk
 :license: PMPL-1.0-or-later
@@ -6,7 +10,7 @@
 :toclevels: 3
 :icons: font
 
-image:https://img.shields.io/badge/license-PMPL--1.0--or--later-blue.svg[License]
+image:https://img.shields.io/badge/license-MPL--2.0-blue.svg[License]
 image:https://img.shields.io/badge/RSR-2026--compliant-green.svg[RSR Compliant]
 image:https://img.shields.io/badge/verified-cerro--torre-purple.svg[Cerro Torre Verified]
 
@@ -359,13 +363,9 @@ make test-integration
 
 == License
 
-SPDX-License-Identifier: PMPL-1.0-or-later
+This project is licensed under the Mozilla Public License, v. 2.0. See the `LICENSE` file for details.
 
-Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
-
-This project is licensed under the **Palimpsest License (PMPL-1.0-or-later)**.
-
-See link:LICENSE[] for full text.
+SPDX-License-Identifier: MPL-2.0
 
 == Contributing
 
