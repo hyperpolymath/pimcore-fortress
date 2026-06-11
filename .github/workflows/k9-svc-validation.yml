@@ -1,6 +1,5 @@
 name: K9-SVC Validation
 on: [push, pull_request]
-
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -11,7 +10,7 @@ jobs:
         run: |
           #!/bin/bash
           set -euo
-          
+
           # Check all contractiles exist
           for file in Must Trust Dust Lust Adjust Intend; do
             if [ ! -f "${file}.a2ml" ]; then
@@ -19,9 +18,9 @@ jobs:
               exit 1
             fi
           done
-          
+
           echo "✓ All contractiles present"
-          
+
           # Basic syntax validation
           for file in *.a2ml; do
             if [ -f "$file" ]; then
@@ -32,5 +31,5 @@ jobs:
               fi
             fi
           done
-          
+
           echo "✓ Contractile validation passed"

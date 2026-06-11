@@ -166,3 +166,6 @@ shell:
 
 db-shell:
     docker compose exec db psql -U pimcore
+
+secret-scan-trufflehog:
+    @command -v trufflehog >/dev/null && trufflehog filesystem . --only-verified || true
