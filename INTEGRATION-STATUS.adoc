@@ -1,15 +1,17 @@
-# Pimcore Fortress + Lithoglyph Integration Status
+== Pimcore Fortress + Lithoglyph Integration Status
 
-**Date:** 2026-02-07
-**Status:** ✅ **ARCHITECTURE COMPLETE** - Ready for Deployment
+*Date:* 2026-02-07 *Status:* ✅ *ARCHITECTURE COMPLETE* - Ready for
+Deployment
 
-## Overview
+=== Overview
 
-The complete integration between Pimcore Fortress and Lithoglyph is **architecturally complete** and **ready for deployment**. All components are implemented, tested, and operational.
+The complete integration between Pimcore Fortress and Lithoglyph is
+*architecturally complete* and *ready for deployment*. All components
+are implemented, tested, and operational.
 
-## Architecture Status
+=== Architecture Status
 
-```
+....
 ┌─────────────────────────────────────────────────────────┐
 │                   PIMCORE FORTRESS                      │
 │           (Superhardened CMS for Journalists)           │
@@ -69,56 +71,73 @@ The complete integration between Pimcore Fortress and Lithoglyph is **architectu
 │  │  - Cryptographic integrity                      │    │
 │  └────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────┘
-```
+....
 
-## Component Status
+=== Component Status
 
-| Component | Status | Completion | Location |
-|-----------|--------|------------|----------|
-| **LithoglyphAdapter.php** | ✅ Complete | 100% | `src/Adapter/LithoglyphAdapter.php` |
-| **Lithoglyph HTTP API** | ✅ Complete | 100% | `../lithoglyph/demo-server.zig` |
-| **Bridge Library** | ✅ Complete | 100% | `../lithoglyph/core-zig/libbridge.so` |
-| **Block I/O** | ✅ Complete | 100% | `../lithoglyph/core-zig/src/blocks.zig` |
-| **Integration Test** | ✅ Ready | 100% | `test-lithoglyph-integration.php` |
-| **Docker Compose** | ✅ Ready | 100% | `docker-compose.yml` |
-| **Pimcore Config** | ⏳ Pending | 50% | Needs Flysystem configuration |
+[width="100%",cols="28%,19%,29%,24%",options="header",]
+|===
+|Component |Status |Completion |Location
+|*LithoglyphAdapter.php* |✅ Complete |100%
+|`+src/Adapter/LithoglyphAdapter.php+`
 
-## Testing Results
+|*Lithoglyph HTTP API* |✅ Complete |100%
+|`+../lithoglyph/demo-server.zig+`
 
-### Lithoglyph Server (Standalone)
-```bash
+|*Bridge Library* |✅ Complete |100%
+|`+../lithoglyph/core-zig/libbridge.so+`
+
+|*Block I/O* |✅ Complete |100%
+|`+../lithoglyph/core-zig/src/blocks.zig+`
+
+|*Integration Test* |✅ Ready |100% |`+test-lithoglyph-integration.php+`
+
+|*Docker Compose* |✅ Ready |100% |`+docker-compose.yml+`
+
+|*Pimcore Config* |⏳ Pending |50% |Needs Flysystem configuration
+|===
+
+=== Testing Results
+
+==== Lithoglyph Server (Standalone)
+
+[source,bash]
+----
 $ cd ../lithoglyph && ./demo-server
 ✅ Server starts on localhost:8080
 ✅ Health check: {"status":"healthy","bridge_version":100}
 ✅ Version: {"version":100}
 ✅ Schema: {"version":1,"block_count":1,"collections":[]}
-```
+----
 
-### PHP Adapter (Code Review)
-```
+==== PHP Adapter (Code Review)
+
+....
 ✅ Implements complete Flysystem interface
 ✅ All CRUD operations defined
 ✅ HTTP client with cURL
 ✅ Error handling present
 ✅ Metadata support
 ✅ Content-addressable path handling
-```
+....
 
-### End-to-End Stack
-```
+==== End-to-End Stack
+
+....
 ✅ Layer 1: Pimcore → PHP Adapter (code complete)
 ✅ Layer 2: PHP Adapter → HTTP (cURL ready)
 ✅ Layer 3: HTTP → Lithoglyph Server (tested)
 ✅ Layer 4: Server → FFI → Bridge (tested)
 ✅ Layer 5: Bridge → BlockStorage (tested)
 ✅ Layer 6: BlockStorage → *.lgh files (tested)
-```
+....
 
-## Deployment Instructions
+=== Deployment Instructions
 
-### Quick Start (Development)
+==== Quick Start (Development)
 
-```bash
+[source,bash]
+----
 # Terminal 1: Start Lithoglyph
 cd ~/Documents/hyperpolymath-repos/lithoglyph
 LD_LIBRARY_PATH=core-zig:$LD_LIBRARY_PATH ./demo-server
@@ -139,88 +158,93 @@ EOF
 
 # Terminal 3: Start Pimcore
 docker compose up -d
-```
+----
 
-### Production Deployment
+==== Production Deployment
 
 For production, use the verified container stack:
 
-```bash
+[source,bash]
+----
 # Build verified images
 cerro-torre build --manifest ../lithoglyph/lithoglyph.ctp --sign
 cerro-torre build --manifest pimcore.ctp --sign
 
 # Deploy via Svalinn
 svalinn-compose up -d
-```
+----
 
-## Key Features Implemented
+=== Key Features Implemented
 
-### LithoglyphAdapter.php
-- ✅ `fileExists()` - Check if asset exists
-- ✅ `write()` - Write asset with base64 encoding
-- ✅ `read()` - Read asset with base64 decoding
-- ✅ `delete()` - Delete asset (immutable-aware)
-- ✅ `listContents()` - Directory listing
-- ✅ `move()` - Move asset
-- ✅ `copy()` - Copy asset
-- ✅ `mimeType()` - Get MIME type
-- ✅ `fileSize()` - Get file size
-- ✅ `lastModified()` - Get modification time
+==== LithoglyphAdapter.php
 
-### Lithoglyph HTTP API
-- ✅ `GET /health` - Health check
-- ✅ `GET /version` - Bridge version
-- ✅ `GET /schema` - Schema introspection
-- ✅ `POST /insert` - Insert operations
-- ✅ FFI integration working
-- ✅ Persistent storage operational
+* ✅ `+fileExists()+` - Check if asset exists
+* ✅ `+write()+` - Write asset with base64 encoding
+* ✅ `+read()+` - Read asset with base64 decoding
+* ✅ `+delete()+` - Delete asset (immutable-aware)
+* ✅ `+listContents()+` - Directory listing
+* ✅ `+move()+` - Move asset
+* ✅ `+copy()+` - Copy asset
+* ✅ `+mimeType()+` - Get MIME type
+* ✅ `+fileSize()+` - Get file size
+* ✅ `+lastModified()+` - Get modification time
 
-## What's Needed to Complete
+==== Lithoglyph HTTP API
 
-### Minimal (Can deploy now)
-1. Configure Pimcore's `flysystem.yaml` to use LithoglyphAdapter
-2. Set `LITHOGLYPH_API_URL=http://localhost:8080` in `.env`
-3. Start both servers
+* ✅ `+GET /health+` - Health check
+* ✅ `+GET /version+` - Bridge version
+* ✅ `+GET /schema+` - Schema introspection
+* ✅ `+POST /insert+` - Insert operations
+* ✅ FFI integration working
+* ✅ Persistent storage operational
 
-### Recommended (Production)
-1. Extend Lithoglyph HTTP API with REST endpoints:
-   - `POST /assets` - Create asset
-   - `GET /assets/{id}` - Read asset
-   - `DELETE /assets/{id}` - Delete asset
-   - `GET /directories/{path}` - List directory
-2. Add authentication (API keys)
-3. Build container images
-4. Add VerisimDB integration for provenance
+=== What’s Needed to Complete
 
-### Nice-to-Have (Future)
-1. Pimcore Event Listeners for automatic Lithoglyph engraving
-2. Admin UI for Lithoglyph asset browser
-3. Provenance visualization in Pimcore
-4. Multi-node Lithoglyph clustering
+==== Minimal (Can deploy now)
 
-## Success Criteria
+[arabic]
+. Configure Pimcore’s `+flysystem.yaml+` to use LithoglyphAdapter
+. Set `+LITHOGLYPH_API_URL=http://localhost:8080+` in `+.env+`
+. Start both servers
 
-✅ **ALL MET:**
-- [x] LithoglyphAdapter implements Flysystem interface
-- [x] HTTP communication layer works
-- [x] Lithoglyph server responds to requests
-- [x] FFI bridge functional
-- [x] BlockStorage persists data
-- [x] End-to-end stack verified
-- [x] Documentation complete
+==== Recommended (Production)
 
-## Conclusion
+[arabic]
+. Extend Lithoglyph HTTP API with REST endpoints:
+* `+POST /assets+` - Create asset
+* `+GET /assets/{id}+` - Read asset
+* `+DELETE /assets/{id}+` - Delete asset
+* `+GET /directories/{path}+` - List directory
+. Add authentication (API keys)
+. Build container images
+. Add VerisimDB integration for provenance
 
-**The integration is COMPLETE and READY FOR DEPLOYMENT.**
+==== Nice-to-Have (Future)
 
-All architectural layers are implemented, tested, and operational. The only remaining work is configuration (adding the adapter to Pimcore's config) and optional REST API extensions for production features.
+[arabic]
+. Pimcore Event Listeners for automatic Lithoglyph engraving
+. Admin UI for Lithoglyph asset browser
+. Provenance visualization in Pimcore
+. Multi-node Lithoglyph clustering
 
-The core promise is fulfilled:
-- ✅ Pimcore can store assets in Lithoglyph
-- ✅ Lithoglyph provides immutable storage
-- ✅ Cryptographic integrity guaranteed
-- ✅ Content-addressable architecture working
-- ✅ Full stack verified end-to-end
+=== Success Criteria
 
-**Status: READY FOR JOURNALIST/PR PROFESSIONAL USE** 🎉
+✅ *ALL MET:* - [x] LithoglyphAdapter implements Flysystem interface -
+[x] HTTP communication layer works - [x] Lithoglyph server responds to
+requests - [x] FFI bridge functional - [x] BlockStorage persists data -
+[x] End-to-end stack verified - [x] Documentation complete
+
+=== Conclusion
+
+*The integration is COMPLETE and READY FOR DEPLOYMENT.*
+
+All architectural layers are implemented, tested, and operational. The
+only remaining work is configuration (adding the adapter to Pimcore’s
+config) and optional REST API extensions for production features.
+
+The core promise is fulfilled: - ✅ Pimcore can store assets in
+Lithoglyph - ✅ Lithoglyph provides immutable storage - ✅ Cryptographic
+integrity guaranteed - ✅ Content-addressable architecture working - ✅
+Full stack verified end-to-end
+
+*Status: READY FOR JOURNALIST/PR PROFESSIONAL USE* 🎉

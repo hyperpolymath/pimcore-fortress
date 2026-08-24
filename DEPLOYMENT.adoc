@@ -1,19 +1,19 @@
-# Pimcore Fortress Deployment Guide
+== Pimcore Fortress Deployment Guide
 
-**Date:** 2026-02-07
-**Status:** ✅ Production Ready
+*Date:* 2026-02-07 *Status:* ✅ Production Ready
 
-## Quick Start (Development)
+=== Quick Start (Development)
 
-### Prerequisites
+==== Prerequisites
 
-- Docker & Docker Compose (or Podman & nerdctl)
-- Zig 0.15.2 (for Lithoglyph server)
-- PHP 8.3+ with Composer (for Pimcore)
+* Docker & Docker Compose (or Podman & nerdctl)
+* Zig 0.15.2 (for Lithoglyph server)
+* PHP 8.3+ with Composer (for Pimcore)
 
-### 1. Start Lithoglyph Database
+==== 1. Start Lithoglyph Database
 
-```bash
+[source,bash]
+----
 # Terminal 1: Start Lithoglyph immutable storage backend
 cd ~/Documents/hyperpolymath-repos/lithoglyph
 
@@ -41,11 +41,12 @@ LD_LIBRARY_PATH=core-zig:$LD_LIBRARY_PATH zig build-exe demo-server.zig -lc
 #   GET  /version   - Bridge version
 #   POST /insert    - Insert document
 #   GET  /schema    - Introspect schema
-```
+----
 
-### 2. Verify Lithoglyph is Running
+==== 2. Verify Lithoglyph is Running
 
-```bash
+[source,bash]
+----
 # Terminal 2: Test endpoints
 curl http://localhost:8080/health
 # Expected: {"status":"healthy","database":"open","bridge_version":100}
@@ -55,11 +56,12 @@ curl http://localhost:8080/version
 
 curl http://localhost:8080/schema
 # Expected: {"version":1,"block_count":1,"collections":[]}
-```
+----
 
-### 3. Start Pimcore Fortress
+==== 3. Start Pimcore Fortress
 
-```bash
+[source,bash]
+----
 # Terminal 2 (or new terminal): Start Pimcore CMS
 cd ~/Documents/hyperpolymath-repos/pimcore-fortress
 
@@ -81,11 +83,12 @@ docker compose logs -f pimcore-fortress
 # Access Pimcore
 # Web: http://localhost:8080 (or configured port)
 # Admin: http://localhost:8080/admin
-```
+----
 
-### 4. Verify Integration
+==== 4. Verify Integration
 
-```bash
+[source,bash]
+----
 # Run PHP integration test (requires PHP installed)
 cd ~/Documents/hyperpolymath-repos/pimcore-fortress
 php test-lithoglyph-integration.php
@@ -101,11 +104,11 @@ php test-lithoglyph-integration.php
 # ✓ BlockStorage backend is accessible
 #
 # ✅ ALL LAYERS WORKING!
-```
+----
 
-## Architecture Overview
+=== Architecture Overview
 
-```
+....
 ┌─────────────────────────────────────────┐
 │       PIMCORE FORTRESS (Port 8080)      │
 │     Superhardened CMS for Journalists   │
@@ -160,13 +163,14 @@ php test-lithoglyph-integration.php
 │  │  - Cryptographic integrity        │ │
 │  └───────────────────────────────────┘ │
 └─────────────────────────────────────────┘
-```
+....
 
-## Production Deployment
+=== Production Deployment
 
-### Container-Based (Recommended)
+==== Container-Based (Recommended)
 
-```bash
+[source,bash]
+----
 # 1. Build Lithoglyph container
 cd ~/Documents/hyperpolymath-repos/lithoglyph
 cerro-torre build --manifest lithoglyph.ctp --sign
@@ -177,13 +181,14 @@ cerro-torre build --manifest pimcore.ctp --sign
 
 # 3. Deploy with Svalinn
 svalinn-compose up -d
-```
+----
 
-### Manual Production Setup
+==== Manual Production Setup
 
-#### Lithoglyph Server
+===== Lithoglyph Server
 
-```bash
+[source,bash]
+----
 # Build optimized binary
 cd ~/Documents/hyperpolymath-repos/lithoglyph/core-zig
 zig build-lib src/bridge.zig -dynamic -lc -O ReleaseFast
@@ -211,11 +216,12 @@ EOF
 
 sudo systemctl daemon-reload
 sudo systemctl enable --now lithoglyph
-```
+----
 
-#### Pimcore Fortress
+===== Pimcore Fortress
 
-```bash
+[source,bash]
+----
 # Install dependencies
 cd ~/Documents/hyperpolymath-repos/pimcore-fortress
 composer install --no-dev --optimize-autoloader
@@ -256,34 +262,35 @@ server {
 EOF
 
 sudo systemctl reload nginx
-```
+----
 
-## Security Considerations
+=== Security Considerations
 
-### Lithoglyph
+==== Lithoglyph
 
-- ✅ Runs on localhost:8080 (not exposed externally)
-- ✅ Immutable storage prevents tampering
-- ✅ CRC32C checksums verify integrity
-- ✅ Content-addressable (SHA-256 based)
-- 🔒 TODO: Add TLS for API endpoints
-- 🔒 TODO: Implement API key authentication
+* ✅ Runs on localhost:8080 (not exposed externally)
+* ✅ Immutable storage prevents tampering
+* ✅ CRC32C checksums verify integrity
+* ✅ Content-addressable (SHA-256 based)
+* 🔒 TODO: Add TLS for API endpoints
+* 🔒 TODO: Implement API key authentication
 
-### Pimcore Fortress
+==== Pimcore Fortress
 
-- ✅ Flysystem abstraction prevents direct file access
-- ✅ All assets stored in Lithoglyph (immutable)
-- ✅ Version history preserved automatically
-- ✅ Cryptographic provenance via VerisimDB (planned)
-- 🔒 Ensure APP_SECRET is strong (32+ bytes)
-- 🔒 Use HTTPS in production
-- 🔒 Configure LITHOGLYPH_API_KEY in production
+* ✅ Flysystem abstraction prevents direct file access
+* ✅ All assets stored in Lithoglyph (immutable)
+* ✅ Version history preserved automatically
+* ✅ Cryptographic provenance via VerisimDB (planned)
+* 🔒 Ensure APP_SECRET is strong (32+ bytes)
+* 🔒 Use HTTPS in production
+* 🔒 Configure LITHOGLYPH_API_KEY in production
 
-## Monitoring
+=== Monitoring
 
-### Health Checks
+==== Health Checks
 
-```bash
+[source,bash]
+----
 # Lithoglyph
 curl http://localhost:8080/health
 
@@ -293,89 +300,101 @@ curl http://localhost/admin/login
 # Integration
 cd ~/Documents/hyperpolymath-repos/pimcore-fortress
 php test-lithoglyph-integration.php
-```
+----
 
-### Logs
+==== Logs
 
-```bash
+[source,bash]
+----
 # Lithoglyph (stdout)
 journalctl -u lithoglyph -f
 
 # Pimcore
 tail -f var/log/prod.log
 tail -f var/log/dev.log
-```
+----
 
-## Troubleshooting
+=== Troubleshooting
 
-### Lithoglyph Won't Start
+==== Lithoglyph Won’t Start
 
-**Error:** `error: FileNotFound`
-**Solution:** Ensure `core-zig/libbridge.so` exists
-```bash
+*Error:* `+error: FileNotFound+` *Solution:* Ensure
+`+core-zig/libbridge.so+` exists
+
+[source,bash]
+----
 cd ~/Documents/hyperpolymath-repos/lithoglyph/core-zig
 zig build-lib src/bridge.zig -dynamic -lc -O ReleaseSafe
-```
+----
 
-**Error:** `unable to open database`
-**Solution:** Check file permissions
-```bash
+*Error:* `+unable to open database+` *Solution:* Check file permissions
+
+[source,bash]
+----
 chmod 644 demo.lgh
-```
+----
 
-### Pimcore Can't Connect
+==== Pimcore Can’t Connect
 
-**Error:** `Connection refused`
-**Solution:** Verify Lithoglyph is running
-```bash
+*Error:* `+Connection refused+` *Solution:* Verify Lithoglyph is running
+
+[source,bash]
+----
 curl http://localhost:8080/health
-```
+----
 
-**Error:** `Invalid API key`
-**Solution:** Ensure .env matches Lithoglyph config
-```bash
+*Error:* `+Invalid API key+` *Solution:* Ensure .env matches Lithoglyph
+config
+
+[source,bash]
+----
 grep LITHOGLYPH .env
-```
+----
 
-### Asset Upload Fails
+==== Asset Upload Fails
 
-**Error:** `Write failed`
-**Solution:** Check Lithoglyph logs and disk space
-```bash
+*Error:* `+Write failed+` *Solution:* Check Lithoglyph logs and disk
+space
+
+[source,bash]
+----
 journalctl -u lithoglyph -n 50
 df -h
-```
+----
 
-## Performance Tuning
+=== Performance Tuning
 
-### Lithoglyph
+==== Lithoglyph
 
-- Block size: 4 KiB (optimized for SSDs)
-- Use SSD or NVMe storage
-- Consider RAID 1 for redundancy
-- Monitor block allocation rate
+* Block size: 4 KiB (optimized for SSDs)
+* Use SSD or NVMe storage
+* Consider RAID 1 for redundancy
+* Monitor block allocation rate
 
-### Pimcore
+==== Pimcore
 
-- Enable OPcache for PHP
-- Configure Redis for session/cache
-- Use CDN for thumbnail delivery
-- Enable HTTP/2 or HTTP/3
+* Enable OPcache for PHP
+* Configure Redis for session/cache
+* Use CDN for thumbnail delivery
+* Enable HTTP/2 or HTTP/3
 
-## Backup Strategy
+=== Backup Strategy
 
-### Lithoglyph
+==== Lithoglyph
 
-```bash
+[source,bash]
+----
 # Backup is simple - copy .lgh files
 rsync -av /opt/lithoglyph/*.lgh /backup/lithoglyph/
-```
+----
 
-**Immutability guarantee:** Once written, blocks never change. Incremental backups are safe.
+*Immutability guarantee:* Once written, blocks never change. Incremental
+backups are safe.
 
-### Pimcore
+==== Pimcore
 
-```bash
+[source,bash]
+----
 # Database
 mysqldump pimcore > pimcore-$(date +%Y%m%d).sql
 
@@ -383,56 +402,53 @@ mysqldump pimcore > pimcore-$(date +%Y%m%d).sql
 tar -czf pimcore-config-$(date +%Y%m%d).tar.gz config/ .env
 
 # Assets already backed up via Lithoglyph
-```
+----
 
-## Next Steps
+=== Next Steps
 
-### Optional Enhancements
+==== Optional Enhancements
 
-1. **REST API Extensions** (Lithoglyph)
-   - POST /assets - Create asset
-   - GET /assets/{id} - Read asset
-   - DELETE /assets/{id} - Delete asset (mark immutable)
-   - GET /directories/{path} - List directory
+[arabic]
+. *REST API Extensions* (Lithoglyph)
+* POST /assets - Create asset
+* GET /assets/\{id} - Read asset
+* DELETE /assets/\{id} - Delete asset (mark immutable)
+* GET /directories/\{path} - List directory
+. *Authentication* (Lithoglyph)
+* API key validation
+* JWT token support
+* Rate limiting
+. *Pimcore Integration*
+* Event listeners for automatic Lithoglyph engraving
+* Admin UI for Lithoglyph asset browser
+* Provenance visualization
+* VerisimDB integration for blockchain anchoring
+. *Clustering* (Future)
+* Multi-node Lithoglyph deployment
+* Replication and sharding
+* Distributed query processing
 
-2. **Authentication** (Lithoglyph)
-   - API key validation
-   - JWT token support
-   - Rate limiting
+=== References
 
-3. **Pimcore Integration**
-   - Event listeners for automatic Lithoglyph engraving
-   - Admin UI for Lithoglyph asset browser
-   - Provenance visualization
-   - VerisimDB integration for blockchain anchoring
+* *Lithoglyph Specification:*
+`+~/Documents/hyperpolymath-repos/lithoglyph/spec/+`
+* *Pimcore Documentation:* https://pimcore.com/docs/
+* *Integration Status:* `+INTEGRATION-STATUS.md+`
+* *Test Script:* `+test-lithoglyph-integration.php+`
 
-4. **Clustering** (Future)
-   - Multi-node Lithoglyph deployment
-   - Replication and sharding
-   - Distributed query processing
+=== Support
 
-## References
+* *Repository:* https://github.com/hyperpolymath/pimcore-fortress
+* *Issues:* https://github.com/hyperpolymath/pimcore-fortress/issues
+* *Lithoglyph:* https://github.com/hyperpolymath/lithoglyph
 
-- **Lithoglyph Specification:** `~/Documents/hyperpolymath-repos/lithoglyph/spec/`
-- **Pimcore Documentation:** https://pimcore.com/docs/
-- **Integration Status:** `INTEGRATION-STATUS.md`
-- **Test Script:** `test-lithoglyph-integration.php`
+'''''
 
-## Support
+*Status:* ✅ *PRODUCTION READY - READY FOR JOURNALIST USE*
 
-- **Repository:** https://github.com/hyperpolymath/pimcore-fortress
-- **Issues:** https://github.com/hyperpolymath/pimcore-fortress/issues
-- **Lithoglyph:** https://github.com/hyperpolymath/lithoglyph
-
----
-
-**Status:** ✅ **PRODUCTION READY - READY FOR JOURNALIST USE**
-
-All layers are operational and verified. The integration provides:
-- ✅ Immutable asset storage
-- ✅ Cryptographic integrity
-- ✅ Content-addressable architecture
-- ✅ Full provenance tracking
-- ✅ Superhardened CMS platform
+All layers are operational and verified. The integration provides: - ✅
+Immutable asset storage - ✅ Cryptographic integrity - ✅
+Content-addressable architecture - ✅ Full provenance tracking - ✅
+Superhardened CMS platform
 
 Deploy with confidence for high-integrity journalism workflows.
