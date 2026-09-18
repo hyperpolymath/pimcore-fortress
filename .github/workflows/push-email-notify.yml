@@ -30,6 +30,7 @@ concurrency:
   group: push-email-${{ github.run_id }}
   cancel-in-progress: false
 permissions:
+  actions: read
   contents: read
 jobs:
   notify:
