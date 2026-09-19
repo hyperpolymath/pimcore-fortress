@@ -369,7 +369,7 @@ See link:LICENSE[] for full text.
 
 == Contributing
 
-See link:CONTRIBUTING.md[] for contribution guidelines.
+See link:.github/CONTRIBUTING.md[] for contribution guidelines.
 
 == Support
 
